@@ -77,15 +77,28 @@ func reverse(numbers []int) []int {
 // Expects: A valid node
 // Returns: A boolean representing whether the node was a goal
 func (node *Node) IsGoal() bool {
+	if node.CountBreakpoints() > 0 {
+		return false
+	}
+
+	return true
+}
+
+// Returns the number of breakpoints
+// Expects: A valid node
+// Returns: an int representing the number of breakpoints
+func (node *Node) CountBreakpoints() int {
+	numBreakpoints := 0
+
 	// If we find any breakpoints return false
 	// A breakpoint in a permutation X is a position j such that X(j) + 1 ≠ X(j+1)
 	for i, element := range node.contents[:len(node.contents)-1] {
 		if element+1 != node.contents[i+1] {
-			return false
+			numBreakpoints++
 		}
 	}
 
-	return true
+	return numBreakpoints
 }
 
 // Gives the contents of a node in a comma seperated string
