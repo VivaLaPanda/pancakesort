@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type Node struct {
 	contents []int
+	parent   *Node
+	lock     *sync.Mutex
 }
 
 // Constructor for Node type
@@ -16,6 +19,8 @@ type Node struct {
 func MakeNode(arrange string) (*Node, error) {
 	// Makes a new instance of the Node type
 	node := &Node{}
+	node.parent = nil
+	node.lock = &sync.Mutex{}
 
 	// Parses the passed comma seperated string into the contents of the node
 	strSlice := strings.Split(arrange, ",") // Slice is composed of strings at this point
@@ -47,6 +52,8 @@ func (rootNode *Node) Children() []*Node {
 	for subLen := len(rootNode.contents) - 1; subLen > 2; subLen-- {
 		for i := 0; i+subLen < len(rootNode.contents)+1; i++ {
 			newNode := &Node{}
+			newNode.parent = rootNode
+			newNode.lock = &sync.Mutex{}
 
 			// Copy the array associated with rootNode so as not to modify the original
 			newContents := make([]int, len(rootNode.contents), (cap(rootNode.contents)))
@@ -62,6 +69,25 @@ func (rootNode *Node) Children() []*Node {
 	}
 
 	return childrenSlice
+}
+
+// Function which returns a pointer to the given node's Parent
+// Expects: A valid node
+// Returns: The parent of the node
+func (node *Node) GetParent() *Node {
+	return node.parent
+}
+
+// Function which modifies a node's parent, and then returns the original node
+// Expects: A two valid nodes
+// Returns: The node in the function reciever with the new parent
+func (node *Node) SetParent(newParent *Node) *Node {
+	node.lock.Lock()
+	defer node.lock.Unlock()
+
+	node.parent = newParent
+
+	return node
 }
 
 // Helper function which reverses the slice passed

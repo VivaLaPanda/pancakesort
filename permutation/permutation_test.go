@@ -44,6 +44,30 @@ func TestChildren(t *testing.T) {
 	}
 }
 
+func TestGerParent(t *testing.T) {
+	testNode, _ := MakeNode("1,2,3,4,5")
+
+	actual := testNode.Children()[0].GetParent().contents
+	expected := []int{1, 2, 3, 4, 5}
+
+	if !(reflect.DeepEqual(actual, expected)) {
+		t.Errorf("Error occured while testing GetParent: '%v' != '%v'", expected, actual)
+	}
+}
+
+func TestSetParent(t *testing.T) {
+	testNode, _ := MakeNode("1,2,3,4,5")
+	testNode_2, _ := MakeNode("1,2,3,4,6")
+
+	child := testNode.Children()[0].SetParent(testNode_2)
+	actual := child.GetParent().contents
+	expected := []int{1, 2, 3, 4, 6}
+
+	if !(reflect.DeepEqual(actual, expected)) {
+		t.Errorf("Error occured while testing SetParent: '%v' != '%v'", expected, actual)
+	}
+}
+
 func TestIsGoal(t *testing.T) {
 	goalNode, _ := MakeNode("1,2,3,4,5")
 
