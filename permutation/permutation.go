@@ -127,6 +127,18 @@ func (node *Node) CountBreakpoints() int {
 	return numBreakpoints
 }
 
+func (node *Node) GetDepth() int {
+	return recDepth(node)
+}
+
+func recDepth(node *Node) int {
+	if node.GetParent() == nil {
+		return 0
+	} else {
+		return recDepth(node.GetParent()) + 1
+	}
+}
+
 // Gives the contents of a node in a comma seperated string
 // Expects: a valid node
 // Returns: A string of comma seperated integers
