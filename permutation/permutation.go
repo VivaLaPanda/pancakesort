@@ -2,6 +2,7 @@ package permutation
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"sync"
@@ -110,6 +111,13 @@ func (node *Node) IsGoal() bool {
 	return true
 }
 
+// Returns the contents of the node so that it's state can be uniquely idenfitifed
+// Expects: A valid node
+// Returns: A slice of ints
+func (node *Node) Key() []int {
+	return node.contents
+}
+
 // Returns the number of breakpoints
 // Expects: A valid node
 // Returns: an int representing the number of breakpoints
@@ -119,7 +127,7 @@ func (node *Node) CountBreakpoints() int {
 	// If we find any breakpoints return false
 	// A breakpoint in a permutation X is a position j such that X(j) + 1 ≠ X(j+1)
 	for i, element := range node.contents[:len(node.contents)-1] {
-		if element+1 != node.contents[i+1] {
+		if math.Abs(float64(element+1-node.contents[i+1])) > 1 {
 			numBreakpoints++
 		}
 	}
@@ -127,8 +135,8 @@ func (node *Node) CountBreakpoints() int {
 	return numBreakpoints
 }
 
-func (node *Node) GetDepth() int {
-	return recDepth(node)
+func (node *Node) GetDepth() float64 {
+	return float64(recDepth(node))
 }
 
 func recDepth(node *Node) int {

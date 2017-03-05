@@ -1,23 +1,25 @@
 package astar
 
 import (
-	ds "github.com/hishboy/gocommons/lang"
-	"github.com/oleiade/lane"
-	"github.com/vivalapanda/pancakesort/heuristics"
+	"fmt"
 	"sync"
+
+	heap "github.com/vivalapanda/go-datastructures/fibheap"
+	"github.com/vivalapanda/pancakesort/heuristics"
 )
 
 type GraphNode interface {
-	Children() []*GraphNode
+	Children() []GraphNode
 	IsGoal() bool
-	GetParent() *GraphNode
-	SetParent(*GraphNode) *GraphNode
-	GetDepth() int
+	GetParent() GraphNode
+	SetParent(GraphNode) GraphNode
+	GetDepth() float64
+	Key() interface{}
 }
 
 type Graph struct {
-	open        *lane.PQueue
-	closed      *ds.HashSet
+	open        heap.FloatingFibonacciHeap
+	closed      map[interface{}]GraphNode
 	numExpanded int
 	lock        *sync.Mutex
 }
@@ -25,39 +27,65 @@ type Graph struct {
 func MakeGraph() *Graph {
 	graph := &Graph{}
 
-	graph.open = lane.NewPQueue(lane.MINPQ)
-	graph.closed = ds.NewHashSet()
+	graph.open = heap.NewFloatFibHeap()
+	graph.closed = make(map[interface{}]GraphNode)
 	graph.numExpanded = 0
 
 	return graph
 }
 
-func (graph *Graph) GetGoal(rootNode *GraphNode, hfunc heuristics.Any) *GraphNode {
+func (graph *Graph) GetGoal(rootNode GraphNode, hfunc heuristics.Any) (GraphNode, error) {
+	graph.lock.Lock()
+	graph.open.Enqueue(rootNode, hfunc(rootNode))
+	graph.lock.Unlock()
 
-	return node
+	// Search until you run out of nodes
+	for graph.open.IsEmpty() {
+		entry, err := graph.open.DequeueMin()
+		if err != nil {
+			return nil, fmt.Errorf("Fatal error while traversing tree!\n%v", err)
+		}
+		activeNode := entry.Value.(GraphNode)
+
+		graph.closed[activeNode.Key()] = activeNode
+
+		if activeNode.IsGoal() {
+			return activeNode, nil
+		} else {
+			graph = graph.expand(activeNode, hfunc)
+		}
+
+	}
+
+	// We didn't find a goal node
+	return nil, nil
 }
 
 // Method to expand thr first node on the open set
 // Expects: A valid graph, the depth of nodeToExpand, and a heuristic with which to
 // evaluate the nodes in the graph.
-func (graph Graph) expand(hfunc heuristics.Any) (newGraph Graph, nodeExpanded *GraphNode) {
+func (graph Graph) expand(nodeToExpand GraphNode, hfunc heuristics.Any) (newGraph *Graph) {
 	// Making sure the graph object we have is completely dereferenced from the
 	// one passed in
-	graph.open = &graph.open
-	graph.closed = &graph.closed
 
 	// Expand all of the nodes in the
-	nodeToExpand := graph.open.Pop().(*GraphNode)
 	newNodes := nodeToExpand.Children()
-	graph.closed.Push(nodeToExpand)
 
 	for _, node := range newNodes {
 		// Calculate w(n) + f(n)
-		distance := hfunc(node)
-		cost := node.GetDepth()
+		estimatedCost := hfunc(node) + node.GetDepth()
 
-		graph.open.Push(node, distance+cost)
+		oldNode, exists := graph.closed[node.Key()]
+
+		if exists {
+			oldCost := oldNode.GetDepth() + hfunc(oldNode)
+			if estimatedCost < oldCost {
+				delete(graph.closed, oldNode)
+			}
+		}
+
+		graph.open.Enqueue(node, estimatedCost)
 	}
 
-	return graph, nodeToExpand
+	return &graph
 }

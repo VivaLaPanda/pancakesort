@@ -4,8 +4,8 @@ import (
 	"github.com/vivalapanda/pancakesort/permutation"
 )
 
-type Any func(*permutation.Node) int
+type Any func(interface{}) float64
 
-func Breakpoints(node *permutation.Node) int {
-	return node.CountBreakpoints()
+func Breakpoints(node *permutation.Node) float64 {
+	return float64(node.CountBreakpoints())
 }
