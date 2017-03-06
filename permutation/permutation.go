@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/vivalapanda/pancakesort/helpers"
 )
 
 type Node struct {
@@ -46,25 +48,26 @@ func MakeNode(arrange string) (*Node, error) {
 // Gets the children of a node
 // Expects: a valid rootNode
 // Returns: a slice of Nodes
-func (rootNode *Node) Children() []*Node {
-	childrenSlice := []*Node{}
+func (rootNode *Node) Children() []helpers.GraphNode {
+	childrenSlice := []helpers.GraphNode{}
 
 	// Iterate through all size 2 groupings of adjacent elements
 	for subLen := len(rootNode.contents) - 1; subLen > 2; subLen-- {
-		for i := 0; i+subLen < len(rootNode.contents)+1; i++ {
+		for i := 0; i+subLen < len(rootNode.contents); i++ {
 			newNode := &Node{}
 			newNode.parent = rootNode
 			newNode.lock = &sync.Mutex{}
 
 			// Copy the array associated with rootNode so as not to modify the original
-			newContents := make([]int, len(rootNode.contents), (cap(rootNode.contents)))
-			copy(newContents, rootNode.contents)
+			tempContents := make([]int, len(rootNode.contents), (cap(rootNode.contents)))
+			copy(tempContents, rootNode.contents)
 
 			// Do the rotation
-			newContents = reverse(newContents[i:subLen])
-
+			newContents := append(tempContents[:i], reverse(tempContents[i:subLen+i])...)
+			newContents = append(newContents, tempContents[subLen+i:len(tempContents)]...)
 			// Put the new node on the slice
 			newNode.contents = newContents
+
 			childrenSlice = append(childrenSlice, newNode)
 		}
 	}
@@ -75,18 +78,18 @@ func (rootNode *Node) Children() []*Node {
 // Function which returns a pointer to the given node's Parent
 // Expects: A valid node
 // Returns: The parent of the node
-func (node *Node) GetParent() *Node {
+func (node *Node) GetParent() helpers.GraphNode {
 	return node.parent
 }
 
 // Function which modifies a node's parent, and then returns the original node
 // Expects: A two valid nodes
 // Returns: The node in the function reciever with the new parent
-func (node *Node) SetParent(newParent *Node) *Node {
+func (node *Node) SetParent(newParent helpers.GraphNode) helpers.GraphNode {
 	node.lock.Lock()
 	defer node.lock.Unlock()
 
-	node.parent = newParent
+	node.parent = newParent.(*Node)
 
 	return node
 }
@@ -114,8 +117,8 @@ func (node *Node) IsGoal() bool {
 // Returns the contents of the node so that it's state can be uniquely idenfitifed
 // Expects: A valid node
 // Returns: A slice of ints
-func (node *Node) Key() []int {
-	return node.contents
+func (node *Node) Key() interface{} {
+	return fmt.Sprintf("%v", node.contents)
 }
 
 // Returns the number of breakpoints
@@ -139,8 +142,8 @@ func (node *Node) GetDepth() float64 {
 	return float64(recDepth(node))
 }
 
-func recDepth(node *Node) int {
-	if node.GetParent() == nil {
+func recDepth(node helpers.GraphNode) int {
+	if node.GetParent().(*Node) == nil {
 		return 0
 	} else {
 		return recDepth(node.GetParent()) + 1

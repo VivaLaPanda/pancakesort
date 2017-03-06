@@ -36,8 +36,8 @@ func TestChildren(t *testing.T) {
 		t.Errorf("Error occured while testing Childen, parent was modified: '%v' != '%v'", expected, actual)
 	}
 
-	actual_2 := testNode.Children()[0].contents
-	expected_2 := []int{4, 3, 2, 1}
+	actual_2 := testNode.Children()[0].(*Node).contents
+	expected_2 := []int{4, 3, 2, 1, 5}
 
 	if !(reflect.DeepEqual(actual_2, expected_2)) {
 		t.Errorf("Error occured while testing Childen: '%v' != '%v'", expected_2, actual_2)
@@ -47,7 +47,7 @@ func TestChildren(t *testing.T) {
 func TestGerParent(t *testing.T) {
 	testNode, _ := MakeNode("1,2,3,4,5")
 
-	actual := testNode.Children()[0].GetParent().contents
+	actual := testNode.Children()[0].GetParent().(*Node).contents
 	expected := []int{1, 2, 3, 4, 5}
 
 	if !(reflect.DeepEqual(actual, expected)) {
@@ -60,7 +60,7 @@ func TestSetParent(t *testing.T) {
 	testNode_2, _ := MakeNode("1,2,3,4,6")
 
 	child := testNode.Children()[0].SetParent(testNode_2)
-	actual := child.GetParent().contents
+	actual := child.GetParent().(*Node).contents
 	expected := []int{1, 2, 3, 4, 6}
 
 	if !(reflect.DeepEqual(actual, expected)) {
