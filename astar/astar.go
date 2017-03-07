@@ -41,12 +41,15 @@ func (graph *Graph) GetGoal(rootNode helpers.GraphNode, hfunc helpers.AnyHeurist
 		} else {
 			graph = graph.expand(activeNode, hfunc)
 		}
-
-		fmt.Printf("Set: %v\n", graph.open)
 	}
 
 	// We didn't find a goal node
 	return nil, nil
+}
+
+// Getter for num expanded
+func (graph *Graph) GetNumExpanded() int {
+	return graph.numExpanded
 }
 
 // Method to expand thr first node on the open set
@@ -55,6 +58,7 @@ func (graph *Graph) GetGoal(rootNode helpers.GraphNode, hfunc helpers.AnyHeurist
 func (graph *Graph) expand(nodeToExpand helpers.GraphNode, hfunc helpers.AnyHeuristic) (newGraph *Graph) {
 	// Making sure the graph object we have is completely dereferenced from the
 	// one passed in
+	graph.numExpanded++
 
 	// Expand all of the nodes in the
 	newNodes := nodeToExpand.Children()
@@ -69,10 +73,11 @@ func (graph *Graph) expand(nodeToExpand helpers.GraphNode, hfunc helpers.AnyHeur
 			oldCost := oldNode.GetDepth() + hfunc(oldNode)
 			if estimatedCost < oldCost {
 				delete(graph.closed, oldNode)
+				graph.open.Enqueue(node, estimatedCost)
 			}
+		} else {
+			graph.open.Enqueue(node, estimatedCost)
 		}
-
-		graph.open.Enqueue(node, estimatedCost)
 	}
 
 	return graph

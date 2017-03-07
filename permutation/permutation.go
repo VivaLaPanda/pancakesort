@@ -39,7 +39,8 @@ func MakeNode(arrange string) (*Node, error) {
 		}
 	}
 
-	node.contents = intSlice
+	node.contents = intSlice[:]
+	node.contents = node.contents[:]
 
 	// Returns a reference to the node
 	return node, nil
@@ -52,8 +53,8 @@ func (rootNode *Node) Children() []helpers.GraphNode {
 	childrenSlice := []helpers.GraphNode{}
 
 	// Iterate through all size 2 groupings of adjacent elements
-	for subLen := len(rootNode.contents) - 1; subLen > 2; subLen-- {
-		for i := 0; i+subLen < len(rootNode.contents); i++ {
+	for subLen := len(rootNode.contents) - 1; subLen > 1; subLen-- {
+		for i := 0; i+subLen < len(rootNode.contents)+1; i++ {
 			newNode := &Node{}
 			newNode.parent = rootNode
 			newNode.lock = &sync.Mutex{}
@@ -130,7 +131,7 @@ func (node *Node) CountBreakpoints() int {
 	// If we find any breakpoints return false
 	// A breakpoint in a permutation X is a position j such that X(j) + 1 ≠ X(j+1)
 	for i, element := range node.contents[:len(node.contents)-1] {
-		if math.Abs(float64(element+1-node.contents[i+1])) > 1 {
+		if math.Abs(float64(element-node.contents[i+1])) > 1 {
 			numBreakpoints++
 		}
 	}

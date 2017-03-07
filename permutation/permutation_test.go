@@ -6,14 +6,14 @@ import (
 )
 
 func TestMakeNode(t *testing.T) {
-	testNode, err := MakeNode("1,2,3,4,5")
+	testNode, err := MakeNode("1,4,8,9,11,6,2,7,5,3,10")
 
 	if err != nil {
 		t.Errorf("Fatal error while making new node: %s", err)
 	}
 
 	actual := testNode.contents
-	expected := []int{1, 2, 3, 4, 5}
+	expected := []int{1, 4, 8, 9, 11, 6, 2, 7, 5, 3, 10}
 
 	if !(reflect.DeepEqual(actual, expected)) {
 		t.Errorf("Error occured while testing MakeNode: '%v' != '%v'", expected, actual)
@@ -27,17 +27,17 @@ func TestMakeNode(t *testing.T) {
 }
 
 func TestChildren(t *testing.T) {
-	testNode, _ := MakeNode("1,2,3,4,5")
+	testNode, _ := MakeNode("1,4,8,9,11,6,2,7,5,3,10")
 
 	actual := testNode.contents
-	expected := []int{1, 2, 3, 4, 5}
+	expected := []int{1, 4, 8, 9, 11, 6, 2, 7, 5, 3, 10}
 
 	if !(reflect.DeepEqual(actual, expected)) {
 		t.Errorf("Error occured while testing Childen, parent was modified: '%v' != '%v'", expected, actual)
 	}
 
 	actual_2 := testNode.Children()[0].(*Node).contents
-	expected_2 := []int{4, 3, 2, 1, 5}
+	expected_2 := []int{3, 5, 7, 2, 6, 11, 9, 8, 4, 1, 10}
 
 	if !(reflect.DeepEqual(actual_2, expected_2)) {
 		t.Errorf("Error occured while testing Childen: '%v' != '%v'", expected_2, actual_2)
